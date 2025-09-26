@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mybodega_grupo9.viewmodel.MainViewModel
 
 
+
 @Composable
 fun MainScreen(vm: MainViewModel = viewModel()) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
