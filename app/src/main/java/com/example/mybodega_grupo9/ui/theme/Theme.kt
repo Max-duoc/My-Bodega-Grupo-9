@@ -1,6 +1,6 @@
 package com.example.mybodega_grupo9.ui.theme
 
-import android.app.Activity
+
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -55,3 +55,4 @@ fun MyBodega_Grupo9Theme(
       content = content
     )
 }
+

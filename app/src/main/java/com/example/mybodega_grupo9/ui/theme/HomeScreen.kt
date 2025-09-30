@@ -1,8 +1,13 @@
 package com.example.mybodega_grupo9.ui.theme
 
-
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -26,18 +31,18 @@ fun HomeScreen(onAddClick: () -> Unit = {}) {
         }
     ) { padding ->
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Top),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Companion.Top),
+            horizontalAlignment = Alignment.Companion.CenterHorizontally
         ) {
             // Logo (coloca logo.png en res/drawable)
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo My Bodega",
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .height(120.dp)
                     .width(120.dp)
             )
@@ -52,11 +57,8 @@ fun HomeScreen(onAddClick: () -> Unit = {}) {
             }
 
             // Aquí dejar espacio para lista (se añadirá en siguientes pasos)
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.Companion.height(12.dp))
             Text("Lista de productos aparecerá aquí...")
         }
     }
 }
-
-
-
