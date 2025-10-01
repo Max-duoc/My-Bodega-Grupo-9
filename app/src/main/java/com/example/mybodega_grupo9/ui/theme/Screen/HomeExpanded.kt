@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mybodega_grupo9.ui.theme.HomeScreen
 
 @Composable
 fun HomeExpanded(onAdd: () -> Unit) {
@@ -25,4 +26,5 @@ fun HomeExpanded(onAdd: () -> Unit) {
             Text("Panel lateral (acciones rápidas)")
         }
     }
+    HomeScreen()
 }
