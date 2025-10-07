@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.mybodega_grupo9.ui.theme.Screen.AdaptiveHome
+import com.example.mybodega_grupo9.ui.Screen.AdaptiveHome
 
 @Composable
 fun MyBodegaNavHost(startDestination: String = Screen.Home.route) {
