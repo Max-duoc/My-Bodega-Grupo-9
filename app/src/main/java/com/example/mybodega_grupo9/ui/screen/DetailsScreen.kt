@@ -1,4 +1,4 @@
-package com.example.mybodega_grupo9.ui.Screen
+package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

@@ -5,8 +5,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.mybodega_grupo9.ui.Screen.RegistroScreen
-import com.example.mybodega_grupo9.ui.Screen.ResumenScreen
+import com.example.mybodega_grupo9.ui.screen.RegistroScreen
+import com.example.mybodega_grupo9.ui.screen.ResumenScreen
 import com.example.mybodega_grupo9.viewmodel.UsuarioViewModel
 
 @Composable
