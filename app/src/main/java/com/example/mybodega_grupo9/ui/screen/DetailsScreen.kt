@@ -1,6 +1,8 @@
 package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,44 +14,45 @@ import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    productId: Int,
+    productId: Int = 0,
     vm: ProductoViewModel = viewModel()
 ) {
-    val producto = vm.obtenerProductoPorId(productId)
+    val productos by vm.productos.collectAsState()
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Detalle del Producto") })
-        }
+        topBar = { TopAppBar(title = { Text("Productos almacenados") }) }
     ) { padding ->
-        if (producto == null) {
+        if (productos.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Producto no encontrado", style = MaterialTheme.typography.bodyLarge)
+                Text("No hay productos registrados.")
             }
         } else {
-            Column(
+            LazyColumn(
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = "Nombre: ${producto.nombre}",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text("Categoría: ${producto.categoria}")
-                Text("Cantidad: ${producto.cantidad}")
-                Text("Descripción: ${producto.descripcion}")
-
-                // NUEVO CAMPO — UBICACIÓN
-                Text(
-                    text = "Ubicación: ${producto.ubicacion ?: "No registrada"}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                items(productos) { producto ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Nombre: ${producto.nombre}", style = MaterialTheme.typography.titleMedium)
+                            Text("Categoría: ${producto.categoria}")
+                            Text("Cantidad: ${producto.cantidad}")
+                            Text("Descripción: ${producto.descripcion}")
+                            Text("Ubicación: ${producto.ubicacion ?: "No registrada"}")
+                        }
+                    }
+                }
             }
         }
     }

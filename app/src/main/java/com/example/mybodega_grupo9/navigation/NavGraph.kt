@@ -12,7 +12,10 @@ import com.example.mybodega_grupo9.ui.screen.HomeScreen
 fun MyBodegaNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(Screen.Home.route) {
-            HomeScreen(onNavigateToAdd = { navController.navigate(Screen.AddItem.route) })
+            HomeScreen(
+                onNavigateToAdd = { navController.navigate(Screen.AddItem.route) },
+                onNavigateToDetails = { navController.navigate(Screen.Details.route) } // ✅ nueva ruta
+            )
         }
         composable(Screen.AddItem.route) {
             AddItemScreen(onSave = { navController.navigate(Screen.Home.route) })
@@ -20,6 +23,9 @@ fun MyBodegaNavHost(navController: NavHostController) {
         composable("${Screen.Details.route}/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             DetailsScreen(productId = id)
+        }
+        composable(Screen.Details.route) {
+            DetailsScreen(productId = 0) // verás la lista completa (actualizaremos abajo)
         }
     }
 }

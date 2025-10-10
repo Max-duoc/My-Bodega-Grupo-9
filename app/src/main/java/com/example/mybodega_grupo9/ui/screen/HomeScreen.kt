@@ -22,7 +22,9 @@ import com.example.mybodega_grupo9.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onAddClick: () -> Unit = {}) {
+fun HomeScreen(onNavigateToAdd: () -> Unit,
+        onNavigateToDetails: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -56,6 +58,11 @@ fun HomeScreen(onAddClick: () -> Unit = {}) {
             Spacer(modifier = Modifier.height(20.dp))
             Button(onClick = onNavigateToAdd) { // ✅ usa la función aquí
                 Text("Agregar producto")
+            }
+
+            Button(onClick = onNavigateToDetails) {
+                Text("Ver productos almacenados")
+            }
 
             // Aquí dejar espacio para lista (se añadirá en siguientes pasos)
             Spacer(modifier = Modifier.Companion.height(12.dp))
