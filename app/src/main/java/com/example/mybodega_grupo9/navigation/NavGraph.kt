@@ -1,35 +1,26 @@
 package com.example.mybodega_grupo9.navigation
 
-
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.mybodega_grupo9.ui.Screen.AdaptiveHome
+import com.example.mybodega_grupo9.ui.screen.AddItemScreen
+import com.example.mybodega_grupo9.ui.screen.DetailsScreen
+import com.example.mybodega_grupo9.ui.screen.HomeScreen
 
 @Composable
-fun MyBodegaNavHost(startDestination: String = Screen.Home.route) {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = startDestination) {
+fun MyBodegaNavHost(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(Screen.Home.route) {
-            AdaptiveHome(onAdd = { navController.navigate(Screen.AddItem.route) })
+            HomeScreen(onNavigateToAdd = { navController.navigate(Screen.AddItem.route) })
         }
         composable(Screen.AddItem.route) {
-            AddItemScreen(onSaved = { navController.popBackStack() })
+            AddItemScreen(onSave = { navController.navigate(Screen.Home.route) })
         }
-        composable("details/{itemId}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("itemId")?.toIntOrNull() ?: 0
-            DetailsScreen(itemId = id)
+        composable("${Screen.Details.route}/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+            DetailsScreen(productId = id)
         }
     }
 }
 
-@Composable
-fun DetailsScreen(itemId: Int) {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun AddItemScreen(onSaved: () -> Boolean) {
-    TODO("Not yet implemented")
-}

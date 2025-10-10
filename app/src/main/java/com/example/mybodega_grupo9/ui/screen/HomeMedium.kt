@@ -1,5 +1,4 @@
-package com.example.mybodega_grupo9.ui.Screen
-
+package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -8,21 +7,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun HomeExpanded(onAdd: () -> Unit) {
+fun HomeMedium(onAdd: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text("Vista Expanded (pantallas grandes)")
+            Text("Vista Medium (tablets chicas)")
             // Lista de productos
         }
-        Column(modifier = Modifier.weight(2f)) {
-            Text("Panel central (detalle)")
-        }
         Column(modifier = Modifier.weight(1f)) {
-            Text("Panel lateral (acciones rápidas)")
+            Text("Panel adicional (ej. detalle del producto)")
         }
     }
     HomeScreen()

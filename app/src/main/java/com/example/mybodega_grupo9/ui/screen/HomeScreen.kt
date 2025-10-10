@@ -1,4 +1,4 @@
-package com.example.mybodega_grupo9.ui.Screen
+package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -52,9 +52,10 @@ fun HomeScreen(onAddClick: () -> Unit = {}) {
             Text(text = "Organiza tus productos por categoría y ubicación")
 
             // Botón principal
-            Button(onClick = onAddClick) {
+            Text("Bienvenido a tu inventario personal")
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onNavigateToAdd) { // ✅ usa la función aquí
                 Text("Agregar producto")
-            }
 
             // Aquí dejar espacio para lista (se añadirá en siguientes pasos)
             Spacer(modifier = Modifier.Companion.height(12.dp))
