@@ -1,4 +1,4 @@
-package com.example.mybodega_grupo9.ui.theme.utils
+package com.example.mybodega_grupo9.utils
 
 
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package com.example.mybodega_grupo9.ui.theme.Screen
+package com.example.mybodega_grupo9.ui.Screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

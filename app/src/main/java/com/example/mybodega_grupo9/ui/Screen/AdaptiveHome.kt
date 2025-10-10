@@ -1,9 +1,9 @@
-package com.example.mybodega_grupo9.ui.theme.Screen
+package com.example.mybodega_grupo9.ui.Screen
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.example.mybodega_grupo9.ui.theme.utils.currentWindowWidthSize
-import com.example.mybodega_grupo9.ui.theme.utils.WindowWidthSize
+import com.example.mybodega_grupo9.utils.currentWindowWidthSize
+import com.example.mybodega_grupo9.utils.WindowWidthSize
 
 @Composable
 fun AdaptiveHome(onAdd: () -> Unit) {
