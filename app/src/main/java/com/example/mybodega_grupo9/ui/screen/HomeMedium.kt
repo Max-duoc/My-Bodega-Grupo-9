@@ -1,26 +1,65 @@
 package com.example.mybodega_grupo9.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.mybodega_grupo9.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeMedium(onAdd: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Vista Medium (tablets chicas)")
-            // Lista de productos
+fun HomeMedium(
+    onNavigateToAdd: () -> Unit,
+    onNavigateToDetails: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("My Bodega") }
+            )
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Panel adicional (ej. detalle del producto)")
+    ) { padding ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Columna izquierda con logo e info
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo My Bodega",
+                    modifier = Modifier
+                        .height(140.dp)
+                        .width(140.dp)
+                )
+                Text("Inventario personal de la casa")
+                Text("Organiza tus productos por categoría y ubicación")
+            }
+
+            // Columna derecha con botones
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Button(onClick = onNavigateToAdd, modifier = Modifier.width(200.dp)) {
+                    Text("Agregar producto")
+                }
+                Button(onClick = onNavigateToDetails, modifier = Modifier.width(200.dp)) {
+                    Text("Ver productos almacenados")
+                }
+            }
         }
     }
-    HomeScreen()
 }
+
