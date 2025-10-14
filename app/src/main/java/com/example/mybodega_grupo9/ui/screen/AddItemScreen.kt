@@ -31,17 +31,34 @@ fun AddItemScreen(
     var categoria by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") } // NUEVO CAMPO OPCIONAL
+    var ubicacion by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // ✅ Launcher para abrir la cámara
+    // ✅ Primero declarar el cameraLauncher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            vm.setProductoImagen(imageUri) // Guarda la URI en el ViewModel
+            vm.setProductoImagen(imageUri)
+        }
+    }
+
+    // ✅ Luego el permissionLauncher que usa cameraLauncher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permiso concedido, abrir cámara
+            val photoFile = File(context.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                photoFile
+            )
+            imageUri = uri
+            cameraLauncher.launch(uri)
         }
     }
 
@@ -55,61 +72,57 @@ fun AddItemScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // -------- CAMPOS DE TEXTO --------
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre *") },
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = categoria,
                 onValueChange = { categoria = it },
                 label = { Text("Categoría *") },
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = cantidad,
                 onValueChange = { cantidad = it },
                 label = { Text("Cantidad *") },
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
                 label = { Text("Descripción") },
-                singleLine = false
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = ubicacion,
                 onValueChange = { ubicacion = it },
                 label = { Text("Ubicación (opcional)") },
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            // -------- BOTÓN DE CÁMARA --------
             Spacer(modifier = Modifier.height(20.dp))
+
             Button(
                 onClick = {
-                    val photoFile = File(context.cacheDir, "temp_photo.jpg")
-                    val uri = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.provider",
-                        photoFile
-                    )
-                    imageUri = uri
-                    cameraLauncher.launch(uri)
+                    permissionLauncher.launch(android.Manifest.permission.CAMERA)
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text("Tomar foto del producto")
             }
 
-            // -------- VISTA PREVIA DE IMAGEN --------
             vm.productoImagenUri?.let { uri ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Image(
@@ -123,7 +136,6 @@ fun AddItemScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // -------- BOTÓN GUARDAR --------
             Button(
                 onClick = {
                     if (nombre.isNotBlank() && cantidad.isNotBlank()) {
@@ -132,9 +144,9 @@ fun AddItemScreen(
                                 id = (0..100000).random(),
                                 nombre = nombre,
                                 categoria = categoria,
-                                cantidad = cantidad.toInt(),
+                                cantidad = cantidad.toIntOrNull() ?: 0,
                                 descripcion = descripcion,
-                                ubicacion = ubicacion.ifBlank { null } // ← si está vacío, guarda null
+                                ubicacion = ubicacion.ifBlank { null }
                             )
                         )
                         onSave()
