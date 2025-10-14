@@ -1,5 +1,6 @@
 package com.example.mybodega_grupo9.ui.screen
 
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
