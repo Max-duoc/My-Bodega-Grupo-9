@@ -6,6 +6,7 @@ data class Producto(
     val categoria: String = "",
     val cantidad: Int = 0,
     val descripcion: String = "",
-    val ubicacion: String? = null // campo opcional
+    val ubicacion: String? = null, // campo opcional
+    val imagenUri: String? = null
 )
 

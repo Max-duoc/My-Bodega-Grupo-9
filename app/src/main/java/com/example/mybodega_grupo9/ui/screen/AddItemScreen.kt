@@ -20,6 +20,8 @@ import com.example.mybodega_grupo9.R
 import com.example.mybodega_grupo9.model.Producto
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 import java.io.File
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +38,6 @@ fun AddItemScreen(
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // ✅ Primero declarar el cameraLauncher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -45,12 +46,10 @@ fun AddItemScreen(
         }
     }
 
-    // ✅ Luego el permissionLauncher que usa cameraLauncher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            // Permiso concedido, abrir cámara
             val photoFile = File(context.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
             val uri = FileProvider.getUriForFile(
                 context,
@@ -69,7 +68,8 @@ fun AddItemScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()), // ✅ AGREGADO: Scroll vertical
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             OutlinedTextField(

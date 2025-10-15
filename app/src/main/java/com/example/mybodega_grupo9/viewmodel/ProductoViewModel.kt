@@ -14,18 +14,25 @@ class ProductoViewModel : ViewModel() {
     private val _productos = MutableStateFlow<List<Producto>>(emptyList())
     val productos: StateFlow<List<Producto>> = _productos
 
+    var productoImagenUri by mutableStateOf<Uri?>(null)
+        private set
+
     fun agregarProducto(producto: Producto) {
-        _productos.value = _productos.value + producto
+        // ✅ Agregar el producto con la imagen guardada
+        val productoConImagen = producto.copy(
+            imagenUri = productoImagenUri?.toString()
+        )
+        _productos.value = _productos.value + productoConImagen
+
+        // ✅ Limpiar la imagen después de guardar
+        productoImagenUri = null
     }
 
     fun obtenerProductoPorId(id: Int): Producto? {
         return _productos.value.find { it.id == id }
     }
-    var productoImagenUri by mutableStateOf<Uri?>(null)
-        private set
 
     fun setProductoImagen(uri: Uri?) {
         productoImagenUri = uri
     }
-
 }
