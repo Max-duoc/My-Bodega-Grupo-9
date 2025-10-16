@@ -1,13 +1,11 @@
 package com.example.mybodega_grupo9.ui.screen
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,40 +17,84 @@ import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 @Composable
 fun DetailsScreen(
     navController: NavController,
-    productId: Int = 0,
     vm: ProductoViewModel = viewModel()
 ) {
     val productos by vm.productos.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
 
-    LazyColumn {
+    // Filtrado en tiempo real
+    val filtered = productos.filter {
+        it.nombre.contains(searchQuery, ignoreCase = true) ||
+                it.categoria.contains(searchQuery, ignoreCase = true)
+    }
 
-        items(productos) { producto ->
-            // Dentro de tu LazyColumn (DetailsScreen)
-            Card(
-                onClick = { navController.navigate("edit/${producto.id}") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ){
-                Column(Modifier.padding(16.dp)) {
-                    Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
-                    Text("Categoría: ${producto.categoria}")
-                    Text("Cantidad: ${producto.cantidad}")
-                    Text("Ubicación: ${producto.ubicacion ?: "No registrada"}")
-                    producto.imagenUri?.let {
-                        Image(
-                            painter = rememberAsyncImagePainter(it),
-                            contentDescription = null,
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Inventario") }) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            // Campo de búsqueda SIEMPRE visible
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar producto...") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            if (filtered.isEmpty()) {
+                Text("No hay productos que coincidan con la búsqueda.")
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f) // ← evita que tape el filtro
+                ) {
+                    items(filtered) { producto ->
+                        Card(
                             modifier = Modifier
-                                .height(160.dp)
                                 .fillMaxWidth()
-                        )
-                    }
-                    Button(
-                        onClick = { vm.eliminarProducto(producto) },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text("Eliminar")
+                                .padding(vertical = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
+                                Text("Categoría: ${producto.categoria}")
+                                Text("Cantidad: ${producto.cantidad}")
+                                Text("Ubicación: ${producto.ubicacion ?: "No registrada"}")
+
+                                producto.imagenUri?.let {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(it),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .height(150.dp)
+                                            .fillMaxWidth()
+                                    )
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.End,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Button(onClick = {
+                                        navController.navigate("edit/${producto.id}")
+                                    }) {
+                                        Text("Editar")
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Button(onClick = {
+                                        vm.eliminarProducto(producto)
+                                    }) {
+                                        Text("Eliminar")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
