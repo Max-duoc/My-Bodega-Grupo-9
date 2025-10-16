@@ -10,6 +10,7 @@ import com.example.mybodega_grupo9.ui.screen.AddItemScreen
 import com.example.mybodega_grupo9.ui.screen.DetailsScreen
 import com.example.mybodega_grupo9.ui.screen.EditItemScreen
 import com.example.mybodega_grupo9.ui.screen.HomeScreen
+import com.example.mybodega_grupo9.ui.screen.ReportScreen
 //import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
@@ -28,7 +29,8 @@ fun AppNavGraph(navController: NavHostController) {
         composable("home") {
             HomeScreen(
                 onNavigateToAdd = { navController.navigate("add") },
-                onNavigateToDetails = { navController.navigate("details") }
+                onNavigateToDetails = { navController.navigate("details") } ,
+                onNavigateToReport = { navController.navigate("report") }
             )
         }
 
@@ -67,9 +69,12 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         // 📊 Reportes de inventario
-        //composable("report") {
-            //ReportScreen(vm = vm)
-        //}
+        composable("report") {
+            ReportScreen(
+                navController = navController,
+                vm = vm
+            )
+        }
     }
 }
 

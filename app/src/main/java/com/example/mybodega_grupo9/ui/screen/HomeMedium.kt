@@ -14,7 +14,8 @@ import com.example.mybodega_grupo9.R
 @Composable
 fun HomeMedium(
     onNavigateToAdd: () -> Unit,
-    onNavigateToDetails: () -> Unit
+    onNavigateToDetails: () -> Unit,
+    onNavigateToReport: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -31,7 +32,6 @@ fun HomeMedium(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Columna izquierda con logo e info
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -47,7 +47,6 @@ fun HomeMedium(
                 Text("Organiza tus productos por categoría y ubicación")
             }
 
-            // Columna derecha con botones
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -58,8 +57,12 @@ fun HomeMedium(
                 Button(onClick = onNavigateToDetails, modifier = Modifier.width(200.dp)) {
                     Text("Ver productos almacenados")
                 }
+                Button(onClick = onNavigateToReport, modifier = Modifier.width(200.dp)) {
+                    Text("Reportes")
+                }
             }
         }
     }
 }
+
 

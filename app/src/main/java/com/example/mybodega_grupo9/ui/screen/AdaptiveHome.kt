@@ -11,34 +11,16 @@ import com.example.mybodega_grupo9.utils.WindowSizeClass
 @Composable
 fun AdaptiveHome(
     onNavigateToAdd: () -> Unit,
-    onNavigateToDetails: () -> Unit
+    onNavigateToDetails: () -> Unit,
+    onNavigateToReport: () -> Unit
 ) {
     val windowInfo = rememberWindowSizeClass()
-
     when (windowInfo.widthSizeClass) {
-        WindowSizeClass.Compact -> {
-            HomeCompact(
-                onNavigateToAdd = onNavigateToAdd,
-                onNavigateToDetails = onNavigateToDetails
-            )
-            Text("Vista Compacta") // Debug opcional
-        }
-
-        WindowSizeClass.Medium -> {
-            HomeMedium(
-                onNavigateToAdd = onNavigateToAdd,
-                onNavigateToDetails = onNavigateToDetails
-            )
-            Text("Vista Mediana") // Debug opcional
-        }
-
-        WindowSizeClass.Expanded -> {
-            HomeExpanded(
-                onNavigateToAdd = onNavigateToAdd,
-                onNavigateToDetails = onNavigateToDetails
-            )
-            Text("Vista Expandida") // Debug opcional
-        }
+        WindowSizeClass.Compact -> HomeCompact(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
+        WindowSizeClass.Medium -> HomeMedium(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
+        WindowSizeClass.Expanded -> HomeExpanded(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
     }
 }
+
+
 
