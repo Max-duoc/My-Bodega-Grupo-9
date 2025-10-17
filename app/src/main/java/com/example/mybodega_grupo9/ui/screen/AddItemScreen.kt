@@ -1,6 +1,5 @@
 package com.example.mybodega_grupo9.ui.screen
 
-
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,13 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.mybodega_grupo9.R
-import com.example.mybodega_grupo9.model.Producto
+import com.example.mybodega_grupo9.data.local.ProductoEntity
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 import java.io.File
 
@@ -32,33 +29,16 @@ fun AddItemScreen(
     var cantidad by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // ✅ Primero declarar el cameraLauncher
+    val context = LocalContext.current
+
+    // ✅ Launcher para abrir la cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            vm.setProductoImagen(imageUri)
-        }
-    }
-
-    // ✅ Luego el permissionLauncher que usa cameraLauncher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Permiso concedido, abrir cámara
-            val photoFile = File(context.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                photoFile
-            )
-            imageUri = uri
-            cameraLauncher.launch(uri)
+            // Guardamos la imagen en memoria temporal
         }
     }
 
@@ -72,83 +52,81 @@ fun AddItemScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // --- CAMPOS DE TEXTO ---
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre *") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                singleLine = true
             )
-
             OutlinedTextField(
                 value = categoria,
                 onValueChange = { categoria = it },
                 label = { Text("Categoría *") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                singleLine = true
             )
-
             OutlinedTextField(
                 value = cantidad,
                 onValueChange = { cantidad = it },
                 label = { Text("Cantidad *") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                singleLine = true
             )
-
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
                 label = { Text("Descripción") },
-                singleLine = false,
-                modifier = Modifier.fillMaxWidth()
+                singleLine = false
             )
-
             OutlinedTextField(
                 value = ubicacion,
                 onValueChange = { ubicacion = it },
                 label = { Text("Ubicación (opcional)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                onClick = {
-                    permissionLauncher.launch(android.Manifest.permission.CAMERA)
-                },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
+            // --- BOTÓN CÁMARA ---
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(onClick = {
+                val photoFile = File(context.cacheDir, "temp_photo.jpg")
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    photoFile
+                )
+                imageUri = uri
+                cameraLauncher.launch(uri)
+            }) {
                 Text("Tomar foto del producto")
             }
 
-            vm.productoImagenUri?.let { uri ->
-                Spacer(modifier = Modifier.height(16.dp))
+            // --- VISTA PREVIA DE IMAGEN ---
+            imageUri?.let { uri ->
+                Spacer(modifier = Modifier.height(10.dp))
                 Image(
                     painter = rememberAsyncImagePainter(uri),
                     contentDescription = "Imagen del producto",
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(200.dp)
+                        .fillMaxWidth()
                 )
             }
 
+            // --- BOTÓN GUARDAR ---
             Spacer(Modifier.height(20.dp))
-
             Button(
                 onClick = {
                     if (nombre.isNotBlank() && cantidad.isNotBlank()) {
-                        vm.agregarProducto(
-                            Producto(
-                                id = (0..100000).random(),
-                                nombre = nombre,
-                                categoria = categoria,
-                                cantidad = cantidad.toIntOrNull() ?: 0,
-                                descripcion = descripcion,
-                                ubicacion = ubicacion.ifBlank { null }
-                            )
+                        // ✅ Guardar en base de datos Room
+                        val producto = ProductoEntity(
+                            nombre = nombre,
+                            categoria = categoria,
+                            cantidad = cantidad.toInt(),
+                            descripcion = descripcion.ifBlank { null },
+                            ubicacion = ubicacion.ifBlank { null },
+                            imagenUri = imageUri?.toString()
                         )
+
+                        vm.agregarProducto(producto)
                         onSave()
                     }
                 },
