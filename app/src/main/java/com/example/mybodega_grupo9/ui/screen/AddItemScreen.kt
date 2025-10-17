@@ -1,16 +1,22 @@
 package com.example.mybodega_grupo9.ui.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -42,6 +48,54 @@ fun AddItemScreen(
         }
     }
 
+    // ✅ NUEVO: Launcher para solicitar permiso de cámara
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permiso concedido, ahora sí abrir la cámara
+            val photoFile = File(context.cacheDir, "temp_photo.jpg")
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                photoFile
+            )
+            imageUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            // Permiso denegado
+            Toast.makeText(
+                context,
+                "Necesitas conceder permiso de cámara para tomar fotos",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    // ✅ NUEVO: Función para verificar y solicitar permiso
+    fun tomarFoto() {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Ya tenemos permiso, abrir cámara directamente
+                val photoFile = File(context.cacheDir, "temp_photo.jpg")
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    photoFile
+                )
+                imageUri = uri
+                cameraLauncher.launch(uri)
+            }
+            else -> {
+                // Solicitar permiso
+                permissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Agregar Producto") }) }
     ) { padding ->
@@ -49,7 +103,8 @@ fun AddItemScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // --- CAMPOS DE TEXTO ---
@@ -84,17 +139,10 @@ fun AddItemScreen(
                 singleLine = true
             )
 
-            // --- BOTÓN CÁMARA ---
+            // --- BOTÓN CÁMARA (MODIFICADO) ---
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = {
-                val photoFile = File(context.cacheDir, "temp_photo.jpg")
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    photoFile
-                )
-                imageUri = uri
-                cameraLauncher.launch(uri)
+                tomarFoto() // ✅ Ahora llama a la función que verifica permisos
             }) {
                 Text("Tomar foto del producto")
             }
