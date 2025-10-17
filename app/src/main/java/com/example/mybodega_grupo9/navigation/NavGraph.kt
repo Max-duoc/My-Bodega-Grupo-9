@@ -10,6 +10,8 @@ import com.example.mybodega_grupo9.ui.screen.AddItemScreen
 import com.example.mybodega_grupo9.ui.screen.DetailsScreen
 import com.example.mybodega_grupo9.ui.screen.EditItemScreen
 import com.example.mybodega_grupo9.ui.screen.HomeScreen
+import com.example.mybodega_grupo9.ui.screen.LoginScreen
+import com.example.mybodega_grupo9.ui.screen.RegisterScreen
 import com.example.mybodega_grupo9.ui.screen.ReportScreen
 //import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
@@ -23,8 +25,13 @@ fun AppNavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "login"
     ) {
+        // Pantallas de autenticación
+        composable("login") { LoginScreen(navController) }
+        composable("register") { RegisterScreen(navController) }
+
+
         // Pantalla principal
         composable("home") {
             HomeScreen(
@@ -68,13 +75,14 @@ fun AppNavGraph(navController: NavHostController) {
             }
         }
 
-        // 📊 Reportes de inventario
+        // Reportes de inventario
         composable("report") {
             ReportScreen(
                 navController = navController,
                 vm = vm
             )
         }
+
     }
 }
 
