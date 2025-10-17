@@ -19,4 +19,7 @@ class ProductoRepository(context: Context) {
 
     suspend fun insert(producto: ProductoEntity) = dao.insert(producto)
     suspend fun delete(producto: ProductoEntity) = dao.delete(producto)
+
+    suspend fun update(producto: ProductoEntity) = dao.update(producto)
+
 }

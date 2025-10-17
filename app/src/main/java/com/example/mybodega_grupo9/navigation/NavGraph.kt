@@ -1,5 +1,6 @@
 package com.example.mybodega_grupo9.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -7,47 +8,68 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mybodega_grupo9.ui.screen.AddItemScreen
 import com.example.mybodega_grupo9.ui.screen.DetailsScreen
+import com.example.mybodega_grupo9.ui.screen.EditItemScreen
 import com.example.mybodega_grupo9.ui.screen.HomeScreen
+//import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun MyBodegaNavHost(navController: NavHostController) {
-    // ✅ Crear el ViewModel una sola vez para compartirlo entre todas las pantallas
-    val productoViewModel: ProductoViewModel = viewModel()
+fun AppNavGraph(navController: NavHostController) {
 
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
-        composable(Screen.Home.route) {
+    // ViewModel disponible en todas las rutas
+    val vm: ProductoViewModel = viewModel()
+
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        // Pantalla principal
+        composable("home") {
             HomeScreen(
-                onNavigateToAdd = { navController.navigate(Screen.AddItem.route) },
-                onNavigateToDetails = { navController.navigate(Screen.Details.route) }
+                onNavigateToAdd = { navController.navigate("add") },
+                onNavigateToDetails = { navController.navigate("details") }
             )
         }
 
-        composable(Screen.AddItem.route) {
-            // ✅ Pasar el ViewModel compartido
+        // Agregar producto
+        composable("add") {
             AddItemScreen(
-                vm = productoViewModel,
-                onSave = {
-                    navController.popBackStack() // Volver a Home
-                }
+                vm = vm,
+                onSave = { navController.navigate("details") }
             )
         }
 
-        composable(Screen.Details.route) {
-            // ✅ Pasar el ViewModel compartido
+        // Ver inventario
+        composable("details") {
             DetailsScreen(
-                productId = 0,
-                vm = productoViewModel
+                navController = navController,
+                vm = vm
             )
         }
 
-        // Si quieres mantener la ruta con ID (opcional)
-        composable("${Screen.Details.route}/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
-            DetailsScreen(
-                productId = id,
-                vm = productoViewModel
-            )
+        // Editar producto (se pasa ID como argumento)
+        composable("edit/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+            val productos = vm.productos.value
+            val productoSeleccionado = productos.find { it.id == id }
+
+            if (productoSeleccionado != null) {
+                EditItemScreen(
+                    producto = productoSeleccionado,
+                    vm = vm,
+                    onUpdate = { navController.popBackStack() }
+                )
+            } else {
+                // Si no se encuentra, volver atrás
+                navController.popBackStack()
+            }
         }
+
+        // 📊 Reportes de inventario
+        //composable("report") {
+            //ReportScreen(vm = vm)
+        //}
     }
 }
+

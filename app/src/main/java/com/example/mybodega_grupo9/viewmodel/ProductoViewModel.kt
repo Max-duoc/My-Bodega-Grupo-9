@@ -25,5 +25,10 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
     fun eliminarProducto(p: ProductoEntity) = viewModelScope.launch {
         repo.delete(p)
     }
+
+    fun actualizarProducto(p: ProductoEntity) = viewModelScope.launch {
+        repo.update(p)
+    }
+
 }
 
