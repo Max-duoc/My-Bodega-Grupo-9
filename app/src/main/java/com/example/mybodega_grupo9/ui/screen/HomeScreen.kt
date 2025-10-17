@@ -9,22 +9,26 @@ import com.example.mybodega_grupo9.utils.rememberWindowSizeClass
 @Composable
 fun HomeScreen(
     onNavigateToAdd: () -> Unit,
-    onNavigateToDetails: () -> Unit
+    onNavigateToDetails: () -> Unit,
+    onNavigateToReport: () -> Unit
 ) {
     val windowSizeInfo = rememberWindowSizeClass()
 
     when (windowSizeInfo.widthSizeClass) {
         WindowSizeClass.Compact -> HomeCompact(
             onNavigateToAdd = onNavigateToAdd,
-            onNavigateToDetails = onNavigateToDetails
+            onNavigateToDetails = onNavigateToDetails,
+            onNavigateToReport = onNavigateToReport
         )
         WindowSizeClass.Medium -> HomeMedium(
             onNavigateToAdd = onNavigateToAdd,
-            onNavigateToDetails = onNavigateToDetails
+            onNavigateToDetails = onNavigateToDetails,
+            onNavigateToReport = onNavigateToReport
         )
         WindowSizeClass.Expanded -> HomeExpanded(
             onNavigateToAdd = onNavigateToAdd,
-            onNavigateToDetails = onNavigateToDetails
+            onNavigateToDetails = onNavigateToDetails,
+            onNavigateToReport = onNavigateToReport
         )
     }
 }

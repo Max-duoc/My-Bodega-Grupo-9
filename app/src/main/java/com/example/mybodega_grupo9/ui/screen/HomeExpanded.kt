@@ -1,6 +1,5 @@
 package com.example.mybodega_grupo9.ui.screen
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -15,7 +14,8 @@ import com.example.mybodega_grupo9.R
 @Composable
 fun HomeExpanded(
     onNavigateToAdd: () -> Unit,
-    onNavigateToDetails: () -> Unit
+    onNavigateToDetails: () -> Unit,
+    onNavigateToReport: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -30,7 +30,6 @@ fun HomeExpanded(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Izquierda: logo e información
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -48,7 +47,6 @@ fun HomeExpanded(
                 Text("Organiza tus productos por categoría y ubicación")
             }
 
-            // Derecha: botones grandes
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -59,6 +57,9 @@ fun HomeExpanded(
                 }
                 Button(onClick = onNavigateToDetails, modifier = Modifier.width(240.dp)) {
                     Text("Ver productos almacenados")
+                }
+                Button(onClick = onNavigateToReport, modifier = Modifier.width(240.dp)) {
+                    Text("Reportes")
                 }
             }
         }
