@@ -11,13 +11,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
     navController: NavController,
-    vm: ProductoViewModel = viewModel()
+    vm: ProductoViewModel = viewModel() ,
+    movimientoVm: MovimientoViewModel = viewModel()
+
 ) {
     val productos by vm.productos.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
@@ -89,6 +92,7 @@ fun DetailsScreen(
                                     Spacer(Modifier.width(8.dp))
                                     Button(onClick = {
                                         vm.eliminarProducto(producto)
+                                        movimientoVm.registrarMovimiento("Eliminar", producto.nombre)
                                     }) {
                                         Text("Eliminar")
                                     }

@@ -15,6 +15,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.mybodega_grupo9.data.local.ProductoEntity
+import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 import java.io.File
 
@@ -22,6 +23,7 @@ import java.io.File
 @Composable
 fun AddItemScreen(
     vm: ProductoViewModel = viewModel(),
+    movimientoVm: MovimientoViewModel = viewModel(),
     onSave: () -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -125,8 +127,10 @@ fun AddItemScreen(
                             ubicacion = ubicacion.ifBlank { null },
                             imagenUri = imageUri?.toString()
                         )
+                        movimientoVm.registrarMovimiento("Agregar", producto.nombre)
+                        vm.agregarProducto(producto) // importa correctamente
 
-                        vm.agregarProducto(producto)
+
                         onSave()
                     }
                 },

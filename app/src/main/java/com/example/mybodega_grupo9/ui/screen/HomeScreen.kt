@@ -10,7 +10,8 @@ import com.example.mybodega_grupo9.utils.rememberWindowSizeClass
 fun HomeScreen(
     onNavigateToAdd: () -> Unit,
     onNavigateToDetails: () -> Unit,
-    onNavigateToReport: () -> Unit
+    onNavigateToReport: () -> Unit,
+    onNavigateToMovimientos: () -> Unit
 ) {
     val windowSizeInfo = rememberWindowSizeClass()
 
@@ -18,17 +19,20 @@ fun HomeScreen(
         WindowSizeClass.Compact -> HomeCompact(
             onNavigateToAdd = onNavigateToAdd,
             onNavigateToDetails = onNavigateToDetails,
-            onNavigateToReport = onNavigateToReport
+            onNavigateToReport = onNavigateToReport,
+            onNavigateToMovimientos = onNavigateToMovimientos
         )
         WindowSizeClass.Medium -> HomeMedium(
             onNavigateToAdd = onNavigateToAdd,
             onNavigateToDetails = onNavigateToDetails,
-            onNavigateToReport = onNavigateToReport
+            onNavigateToReport = onNavigateToReport,
+            onNavigateToMovimientos = onNavigateToMovimientos
         )
         WindowSizeClass.Expanded -> HomeExpanded(
             onNavigateToAdd = onNavigateToAdd,
             onNavigateToDetails = onNavigateToDetails,
-            onNavigateToReport = onNavigateToReport
+            onNavigateToReport = onNavigateToReport,
+            onNavigateToMovimientos = onNavigateToMovimientos
         )
     }
 }

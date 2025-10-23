@@ -15,7 +15,8 @@ import com.example.mybodega_grupo9.R
 fun HomeCompact(
     onNavigateToAdd: () -> Unit,
     onNavigateToDetails: () -> Unit,
-    onNavigateToReport: () -> Unit   // <- nuevo
+    onNavigateToReport: () -> Unit,
+    onNavigateToMovimientos: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -56,6 +57,10 @@ fun HomeCompact(
             // Nuevo botón Reportes
             Button(onClick = onNavigateToReport) {
                 Text("Reportes")
+            }
+
+            Button(onClick = onNavigateToMovimientos, modifier = Modifier.fillMaxWidth()) {
+                Text("Ver historial de movimientos")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
