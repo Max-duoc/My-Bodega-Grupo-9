@@ -15,7 +15,8 @@ import com.example.mybodega_grupo9.R
 fun HomeExpanded(
     onNavigateToAdd: () -> Unit,
     onNavigateToDetails: () -> Unit,
-    onNavigateToReport: () -> Unit
+    onNavigateToReport: () -> Unit,
+    onNavigateToMovimientos: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -60,6 +61,9 @@ fun HomeExpanded(
                 }
                 Button(onClick = onNavigateToReport, modifier = Modifier.width(240.dp)) {
                     Text("Reportes")
+                }
+                Button(onClick = onNavigateToMovimientos, modifier = Modifier.fillMaxWidth()) {
+                    Text("Ver historial de movimientos")
                 }
             }
         }

@@ -11,8 +11,10 @@ import com.example.mybodega_grupo9.ui.screen.DetailsScreen
 import com.example.mybodega_grupo9.ui.screen.EditItemScreen
 import com.example.mybodega_grupo9.ui.screen.HomeScreen
 import com.example.mybodega_grupo9.ui.screen.LoginScreen
+import com.example.mybodega_grupo9.ui.screen.MovimientosScreen
 import com.example.mybodega_grupo9.ui.screen.RegisterScreen
 import com.example.mybodega_grupo9.ui.screen.ReportScreen
+import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 //import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
@@ -22,6 +24,7 @@ fun AppNavGraph(navController: NavHostController) {
 
     // ViewModel disponible en todas las rutas
     val vm: ProductoViewModel = viewModel()
+    val movimientoVm: MovimientoViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -37,7 +40,8 @@ fun AppNavGraph(navController: NavHostController) {
             HomeScreen(
                 onNavigateToAdd = { navController.navigate("add") },
                 onNavigateToDetails = { navController.navigate("details") } ,
-                onNavigateToReport = { navController.navigate("report") }
+                onNavigateToReport = { navController.navigate("report") },
+                onNavigateToMovimientos = { navController.navigate("movimientos")}
             )
         }
 
@@ -56,6 +60,8 @@ fun AppNavGraph(navController: NavHostController) {
                 vm = vm
             )
         }
+
+
 
         // Editar producto (se pasa ID como argumento)
         composable("edit/{id}") { backStackEntry ->
@@ -81,6 +87,10 @@ fun AppNavGraph(navController: NavHostController) {
                 navController = navController,
                 vm = vm
             )
+        }
+
+        composable("movimientos") {
+            MovimientosScreen(vm = movimientoVm)
         }
 
     }

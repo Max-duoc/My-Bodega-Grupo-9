@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 class ProductoViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = ProductoRepository(app)
 
+
     val productos = repo.getAll().stateIn(
         viewModelScope,
         SharingStarted.Lazily,
@@ -23,6 +24,7 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun eliminarProducto(p: ProductoEntity) = viewModelScope.launch {
+
         repo.delete(p)
     }
 

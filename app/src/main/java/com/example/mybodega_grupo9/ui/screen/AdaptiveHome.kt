@@ -12,13 +12,14 @@ import com.example.mybodega_grupo9.utils.WindowSizeClass
 fun AdaptiveHome(
     onNavigateToAdd: () -> Unit,
     onNavigateToDetails: () -> Unit,
-    onNavigateToReport: () -> Unit
+    onNavigateToReport: () -> Unit,
+    onNavigateToMovimientos: () -> Unit
 ) {
     val windowInfo = rememberWindowSizeClass()
     when (windowInfo.widthSizeClass) {
-        WindowSizeClass.Compact -> HomeCompact(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
-        WindowSizeClass.Medium -> HomeMedium(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
-        WindowSizeClass.Expanded -> HomeExpanded(onNavigateToAdd, onNavigateToDetails, onNavigateToReport)
+        WindowSizeClass.Compact -> HomeCompact(onNavigateToAdd, onNavigateToDetails, onNavigateToReport, onNavigateToMovimientos)
+        WindowSizeClass.Medium -> HomeMedium(onNavigateToAdd, onNavigateToDetails, onNavigateToReport, onNavigateToMovimientos)
+        WindowSizeClass.Expanded -> HomeExpanded(onNavigateToAdd, onNavigateToDetails, onNavigateToReport, onNavigateToMovimientos)
     }
 }
 

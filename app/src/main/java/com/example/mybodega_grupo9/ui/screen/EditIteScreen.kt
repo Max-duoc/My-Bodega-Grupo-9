@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mybodega_grupo9.data.local.ProductoEntity
+import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -14,6 +15,7 @@ import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 fun EditItemScreen(
     producto: ProductoEntity,
     vm: ProductoViewModel = viewModel(),
+    movimientoVm: MovimientoViewModel = viewModel(),
     onUpdate: () -> Unit
 ) {
     var nombre by remember { mutableStateOf(producto.nombre) }
@@ -49,6 +51,8 @@ fun EditItemScreen(
                     ubicacion = ubicacion.ifBlank { null }
                 )
                 vm.actualizarProducto(updated)
+                movimientoVm.registrarMovimiento("Editar", producto.nombre)
+
                 onUpdate()
             }) {
                 Text("Guardar cambios")
