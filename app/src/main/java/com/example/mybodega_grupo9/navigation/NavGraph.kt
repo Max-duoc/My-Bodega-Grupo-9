@@ -2,6 +2,7 @@ package com.example.mybodega_grupo9.navigation
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,7 +21,7 @@ import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun AppNavGraph(navController: NavHostController) {
+fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
 
     // ViewModel disponible en todas las rutas
     val vm: ProductoViewModel = viewModel()

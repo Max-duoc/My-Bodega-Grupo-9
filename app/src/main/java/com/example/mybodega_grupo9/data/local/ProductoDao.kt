@@ -8,6 +8,9 @@ interface ProductoDao {
     @Query("SELECT * FROM productos ORDER BY nombre ASC")
     fun getAll(): Flow<List<ProductoEntity>>
 
+    @Query("UPDATE productos SET cantidad = :nuevaCantidad WHERE id = :id")
+    suspend fun updateCantidad(id: Int, nuevaCantidad: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(producto: ProductoEntity)
 
