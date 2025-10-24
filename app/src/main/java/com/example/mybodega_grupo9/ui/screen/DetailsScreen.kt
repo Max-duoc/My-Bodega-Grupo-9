@@ -81,6 +81,27 @@ fun DetailsScreen(
                                 }
 
                                 Row(
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            vm.consumirProducto(producto)
+                                        },
+                                        enabled = producto.cantidad > 0
+                                    ) {
+                                        Text("Consumir")
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            vm.reabastecerProducto(producto)
+                                        }
+                                    ) {
+                                        Text("Reabastecer")
+                                    }
+                                }
+
+                                Row(
                                     horizontalArrangement = Arrangement.End,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {

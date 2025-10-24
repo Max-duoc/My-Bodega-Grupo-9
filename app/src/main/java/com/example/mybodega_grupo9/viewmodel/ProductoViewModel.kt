@@ -32,5 +32,19 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
         repo.update(p)
     }
 
+    fun consumirProducto(producto: ProductoEntity) {
+        viewModelScope.launch {
+            repo.consumirProducto(producto)
+        }
+    }
+
+    fun reabastecerProducto(producto: ProductoEntity) {
+        viewModelScope.launch {
+            repo.reabastecerProducto(producto)
+        }
+    }
+
+
+
 }
 
