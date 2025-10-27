@@ -1,13 +1,22 @@
 package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.mybodega_grupo9.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,51 +29,174 @@ fun HomeExpanded(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("My Bodega") })
+            TopAppBar(
+                title = {
+                    Text(
+                        "My Bodega - Inventario Profesional",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
         }
     ) { padding ->
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.15f)
+                        )
+                    )
+                )
                 .padding(padding)
-                .padding(32.dp),
+                .padding(48.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo My Bodega",
-                    modifier = Modifier
-                        .height(180.dp)
-                        .width(180.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Inventario personal de la casa", style = MaterialTheme.typography.titleLarge)
-                Text("Organiza tus productos por categoría y ubicación")
-            }
-
+            // Panel izquierdo: Branding
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Button(onClick = onNavigateToAdd, modifier = Modifier.width(240.dp)) {
-                    Text("Agregar producto")
+                Surface(
+                    modifier = Modifier.size(200.dp),
+                    shape = RoundedCornerShape(32.dp),
+                    shadowElevation = 16.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo My Bodega",
+                        modifier = Modifier.padding(32.dp)
+                    )
                 }
-                Button(onClick = onNavigateToDetails, modifier = Modifier.width(240.dp)) {
-                    Text("Ver productos almacenados")
+
+                Text(
+                    "My Bodega",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    "Sistema de Inventario Inteligente",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text(
+                    "Organiza • Controla • Optimiza",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+
+            // Panel derecho: Grid de acciones
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ActionCard(
+                        title = "Agregar",
+                        subtitle = "Nuevo producto",
+                        icon = Icons.Default.AddCircle,
+                        color = MaterialTheme.colorScheme.primary,
+                        onClick = onNavigateToAdd,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ActionCard(
+                        title = "Inventario",
+                        subtitle = "Ver productos",
+                        icon = Icons.Default.Inventory,
+                        color = MaterialTheme.colorScheme.secondary,
+                        onClick = onNavigateToDetails,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-                Button(onClick = onNavigateToReport, modifier = Modifier.width(240.dp)) {
-                    Text("Reportes")
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ActionCard(
+                        title = "Reportes",
+                        subtitle = "Estadísticas",
+                        icon = Icons.Default.BarChart,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        onClick = onNavigateToReport,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ActionCard(
+                        title = "Historial",
+                        subtitle = "Movimientos",
+                        icon = Icons.Default.History,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        onClick = onNavigateToMovimientos,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-                Button(onClick = onNavigateToMovimientos, modifier = Modifier.fillMaxWidth()) {
-                    Text("Ver historial de movimientos")
-                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ActionCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(140.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.1f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = color
+            )
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
