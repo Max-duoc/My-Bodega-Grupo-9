@@ -1,5 +1,8 @@
 package com.example.mybodega_grupo9.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mybodega_grupo9.R
+import kotlinx.coroutines.delay
+import com.example.mybodega_grupo9.ui.components.ActionCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +32,14 @@ fun HomeExpanded(
     onNavigateToReport: () -> Unit,
     onNavigateToMovimientos: () -> Unit
 ) {
+    var logoVisible by remember { mutableStateOf(false) }
+
+    // Animación de aparición del logo
+    LaunchedEffect(Unit) {
+        delay(300)
+        logoVisible = true
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -44,7 +57,7 @@ fun HomeExpanded(
             )
         }
     ) { padding ->
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(

@@ -1,7 +1,10 @@
 package com.example.mybodega_grupo9.ui.screen
 
+
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,15 +38,16 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.mybodega_grupo9.data.local.ProductoEntity
+import com.example.mybodega_grupo9.model.Producto
 import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemScreen(
     vm: ProductoViewModel = viewModel(),
-    movimientoVm: MovimientoViewModel = viewModel(),
     onSave: () -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -78,7 +83,7 @@ fun AddItemScreen(
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             val photoFile = File(context.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")

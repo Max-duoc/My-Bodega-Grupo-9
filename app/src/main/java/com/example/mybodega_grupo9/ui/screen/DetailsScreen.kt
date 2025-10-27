@@ -29,6 +29,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mybodega_grupo9.data.local.ProductoEntity
 import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
+import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +39,17 @@ fun DetailsScreen(
     movimientoVm: MovimientoViewModel = viewModel()
 ) {
     val productos by vm.productos.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
 
-    // Filtrado en tiempo real
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf("Todas") }
+    var expanded by remember { mutableStateOf(false) }
+
+    val categorias = listOf("Todas") + productos.map { it.categoria }.distinct()
+
     val filtered = productos.filter {
-        it.nombre.contains(searchQuery, ignoreCase = true) ||
-                it.categoria.contains(searchQuery, ignoreCase = true)
+        (selectedCategory == "Todas" || it.categoria == selectedCategory) &&
+                (it.nombre.contains(searchQuery, ignoreCase = true) ||
+                        it.descripcion?.contains(searchQuery, true) == true)
     }
 
     // Estadísticas
@@ -68,6 +74,7 @@ fun DetailsScreen(
             )
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -427,6 +434,36 @@ fun ProductCard(
                     Spacer(Modifier.width(4.dp))
                     Text("Eliminar")
                 }
+            }
+
+            // 🔴 Diálogo de confirmación de eliminación
+            if (showDeleteDialog && productoAEliminar != null) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                        productoAEliminar = null
+                    },
+                    title = { Text("Eliminar producto") },
+                    text = { Text("¿Seguro que deseas eliminar \"${productoAEliminar!!.nombre}\"?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            vm.eliminarProducto(productoAEliminar!!)
+                            movimientoVm.registrarMovimiento("Eliminar", productoAEliminar!!.nombre)
+                            showDeleteDialog = false
+                            productoAEliminar = null
+                        }) {
+                            Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showDeleteDialog = false
+                            productoAEliminar = null
+                        }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
             }
         }
     }
