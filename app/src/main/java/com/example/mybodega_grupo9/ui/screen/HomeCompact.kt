@@ -1,14 +1,28 @@
 package com.example.mybodega_grupo9.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.mybodega_grupo9.R
+import kotlinx.coroutines.delay
+import com.example.mybodega_grupo9.ui.components.ActionCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,53 +32,110 @@ fun HomeCompact(
     onNavigateToReport: () -> Unit,
     onNavigateToMovimientos: () -> Unit
 ) {
+    var logoVisible by remember { mutableStateOf(false) }
+
+    // Animación de aparición del logo
+    LaunchedEffect(Unit) {
+        delay(300)
+        logoVisible = true
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Bodega") }
+                title = {
+                    Text(
+                        "My Bodega",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Top),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        )
+                    )
+                )
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "Logo My Bodega",
+            Column(
                 modifier = Modifier
-                    .height(120.dp)
-                    .width(120.dp)
-            )
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 🔹 Logo animado
+                AnimatedVisibility(
+                    visible = logoVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo My Bodega",
+                        modifier = Modifier
+                            .height(130.dp)
+                            .width(130.dp)
+                    )
+                }
 
-            Text(text = "Inventario personal de la casa")
-            Text(text = "Organiza tus productos por categoría y ubicación")
+                Text(
+                    text = "Tu inventario personal de hogar",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.85f)
+                )
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(Modifier.height(16.dp))
 
-            Button(onClick = onNavigateToAdd) {
-                Text("Agregar producto")
+                // 🟦 Cards principales (botones visuales)
+                ActionCard(
+                    title = "Agregar Producto",
+                    icon = Icons.Default.Add,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    onClick = onNavigateToAdd
+                )
+
+                ActionCard(
+                    title = "Ver Inventario",
+                    icon = Icons.Default.Inventory,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    onClick = onNavigateToDetails
+                )
+
+                ActionCard(
+                    title = "Ver Reportes",
+                    icon = Icons.Default.BarChart,
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    onClick = onNavigateToReport
+                )
+
+                ActionCard(
+                    title = "Historial de Movimientos",
+                    icon = Icons.Default.History,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    onClick = onNavigateToMovimientos
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    "Administra, controla y visualiza tu bodega fácilmente.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                )
             }
-
-            Button(onClick = onNavigateToDetails) {
-                Text("Ver productos almacenados")
-            }
-
-            // Nuevo botón Reportes
-            Button(onClick = onNavigateToReport) {
-                Text("Reportes")
-            }
-
-            Button(onClick = onNavigateToMovimientos, modifier = Modifier.fillMaxWidth()) {
-                Text("Ver historial de movimientos")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Lista de productos aparecerá aquí...")
         }
     }
 }
+
+
