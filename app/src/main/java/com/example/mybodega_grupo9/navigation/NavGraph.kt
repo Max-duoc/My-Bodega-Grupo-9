@@ -58,9 +58,14 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
         composable("details") {
             DetailsScreen(
                 navController = navController,
-                vm = vm
+                vm = vm,
+                movimientoVm = movimientoVm,
+                onEdit = { id ->
+                    navController.navigate("edit/$id")
+                }
             )
         }
+
 
 
 
