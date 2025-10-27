@@ -90,10 +90,11 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
         // Reportes de inventario
         composable("report") {
             ReportScreen(
-                navController = navController,
-                vm = vm
+                vm = vm,
+                movimientoVm = movimientoVm
             )
         }
+
 
         composable("movimientos") {
             MovimientosScreen(vm = movimientoVm)
@@ -101,4 +102,6 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
 
     }
 }
+
+
 
