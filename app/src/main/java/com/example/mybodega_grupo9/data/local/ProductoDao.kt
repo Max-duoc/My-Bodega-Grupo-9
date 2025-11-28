@@ -21,4 +21,9 @@ interface ProductoDao {
     @Update
     suspend fun update(producto: ProductoEntity)
 
+    @Query("DELETE FROM productos")
+    suspend fun deleteAll()
+
+    @Query("SELECT * FROM productos ORDER BY nombre ASC")
+    suspend fun getAllList(): List<ProductoEntity>
 }

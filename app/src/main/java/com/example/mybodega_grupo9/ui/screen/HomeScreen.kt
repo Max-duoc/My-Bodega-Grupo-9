@@ -2,8 +2,11 @@ package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mybodega_grupo9.utils.WindowSizeClass
 import com.example.mybodega_grupo9.utils.rememberWindowSizeClass
+import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -14,6 +17,12 @@ fun HomeScreen(
     onNavigateToMovimientos: () -> Unit
 ) {
     val windowSizeInfo = rememberWindowSizeClass()
+
+    val vm: ProductoViewModel = viewModel()
+
+    LaunchedEffect(Unit) {
+        vm.syncProductos()
+    }
 
     when (windowSizeInfo.widthSizeClass) {
         WindowSizeClass.Compact -> HomeCompact(
