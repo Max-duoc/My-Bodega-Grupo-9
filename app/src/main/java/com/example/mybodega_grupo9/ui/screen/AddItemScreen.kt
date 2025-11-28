@@ -133,9 +133,11 @@ fun AddItemScreen(
                 ubicacion = ubicacion.trim().ifBlank { null },
                 imagenUri = imageUri?.toString()
             )
-            movimientoVm.registrarMovimiento("Agregar", producto.nombre)
-            vm.agregarProducto(producto)
-            onSave()
+
+            // ⬇️ CAMBIAR ESTA LÍNEA:
+            vm.agregarProducto(producto) {
+                onSave()
+            }
         }
     }
 

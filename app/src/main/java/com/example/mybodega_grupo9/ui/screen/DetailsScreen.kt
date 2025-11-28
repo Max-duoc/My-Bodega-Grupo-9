@@ -1,5 +1,7 @@
 package com.example.mybodega_grupo9.ui.screen
 
+import android.R.id.message
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,11 +38,19 @@ import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 fun DetailsScreen(
     navController: NavController,
     vm: ProductoViewModel = viewModel(),
-    movimientoVm: MovimientoViewModel = viewModel()
+
 ) {
     val productos by vm.productos.collectAsState()
+    val message by vm.message.collectAsState()
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            vm.clearMessage()
+        }
+    }
     // Filtrado en tiempo real
     val filtered = productos.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
@@ -114,7 +125,6 @@ fun DetailsScreen(
                             onEdit = { navController.navigate("edit/${producto.id}") },
                             onDelete = {
                                 vm.eliminarProducto(producto)
-                                movimientoVm.registrarMovimiento("Eliminar", producto.nombre)
                             },
                             onConsumir = { vm.consumirProducto(producto) },
                             onReabastecer = { vm.reabastecerProducto(producto) }

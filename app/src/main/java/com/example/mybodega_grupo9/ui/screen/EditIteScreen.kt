@@ -70,9 +70,11 @@ fun EditItemScreen(
                 descripcion = descripcion.trim().ifBlank { null },
                 ubicacion = ubicacion.trim().ifBlank { null }
             )
-            vm.actualizarProducto(updated)
-            movimientoVm.registrarMovimiento("Editar", producto.nombre)
-            onUpdate()
+
+            // ⬇️ CAMBIAR:
+            vm.actualizarProducto(updated) {
+                onUpdate()
+            }
         }
     }
 
