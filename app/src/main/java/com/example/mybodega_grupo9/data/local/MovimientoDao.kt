@@ -12,6 +12,10 @@ interface MovimientoDao {
     @Query("SELECT * FROM movimientos ORDER BY fecha DESC")
     fun getAll(): Flow<List<MovimientoEntity>>
 
+    // ⬇️ AGREGAR ESTE MÉTODO:
+    @Query("SELECT * FROM movimientos ORDER BY fecha DESC")
+    suspend fun getAllList(): List<MovimientoEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(movimiento: MovimientoEntity)
 
