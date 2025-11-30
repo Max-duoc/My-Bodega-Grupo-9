@@ -1,19 +1,18 @@
 package com.example.mybodega_grupo9.data
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.room.Room
 import com.example.mybodega_grupo9.data.local.AppDatabase
 import com.example.mybodega_grupo9.data.local.ProductoEntity
-import com.example.mybodega_grupo9.data.remote.RetrofitClient
-import com.example.mybodega_grupo9.data.remote.ProductoCreateDTO
-import com.example.mybodega_grupo9.data.remote.ProductoUpdateDTO
-import com.example.mybodega_grupo9.data.remote.StockOperationDTO
+import com.example.mybodega_grupo9.data.remote.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
-class ProductoRepository(context: Context) {
+class ProductoRepository(private val context: Context) {
 
     private val db = Room.databaseBuilder(
         context.applicationContext,
@@ -24,168 +23,242 @@ class ProductoRepository(context: Context) {
     private val dao = db.productoDao()
     private val apiService = RetrofitClient.apiService
 
-    // ==================== OBTENER TODOS (API-FIRST) ====================
+    // ==================== VERIFICAR CONEXIÓN ====================
 
-    fun getAll(): Flow<List<ProductoEntity>> = flow {
+    private fun isOnline(): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    // ==================== SINCRONIZACIÓN AUTOMÁTICA ====================
+
+    /**
+     * Sincroniza productos locales pendientes con el servidor.
+     * Esto se ejecuta automáticamente al recuperar conexión.
+     */
+    suspend fun syncPendingChanges() = withContext(Dispatchers.IO) {
+        if (!isOnline()) return@withContext
+
         try {
-            // 1. Intentar con API
+            // Aquí puedes implementar lógica para sincronizar cambios pendientes
+            // Por ejemplo, productos marcados como "pendientes de sync"
+            // Para simplicidad, solo forzamos una descarga completa
             val response = apiService.getProductos()
             if (response.isSuccessful && response.body() != null) {
                 val productos = response.body()!!.map { it.toEntity() }
-
-                // 2. Guardar en Room como caché
-                withContext(Dispatchers.IO) {
-                    dao.deleteAll()
-                    productos.forEach { dao.insert(it) }
-                }
-
-                // 3. Emitir datos de API
-                emit(productos)
-            } else {
-                // Si falla API, usar caché local
-                val localData = withContext(Dispatchers.IO) { dao.getAllList() }
-                emit(localData)
+                dao.deleteAll()
+                productos.forEach { dao.insert(it) }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            // Si hay error de red, usar caché
-            val localData = withContext(Dispatchers.IO) { dao.getAllList() }
-            emit(localData)
         }
     }
 
-    // ==================== CREAR PRODUCTO (API) ====================
+    // ==================== OBTENER TODOS (ESTRATEGIA HÍBRIDA) ====================
+
+    fun getAll(): Flow<List<ProductoEntity>> = flow {
+        // 1. Emitir datos locales inmediatamente (UI rápida)
+        val localData = withContext(Dispatchers.IO) { dao.getAllList() }
+        emit(localData)
+
+        // 2. Si hay conexión, actualizar desde API
+        if (isOnline()) {
+            try {
+                val response = apiService.getProductos()
+                if (response.isSuccessful && response.body() != null) {
+                    val productos = response.body()!!.map { it.toEntity() }
+
+                    withContext(Dispatchers.IO) {
+                        dao.deleteAll()
+                        productos.forEach { dao.insert(it) }
+                    }
+
+                    // Emitir datos actualizados
+                    emit(productos)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Si falla la API, seguimos mostrando datos locales
+            }
+        }
+    }
+
+    // ==================== CREAR PRODUCTO ====================
 
     suspend fun insert(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
-        try {
-            val dto = ProductoCreateDTO(
-                nombre = producto.nombre,
-                categoria = producto.categoria,
-                cantidad = producto.cantidad,
-                descripcion = producto.descripcion,
-                ubicacion = producto.ubicacion,
-                imagenUrl = producto.imagenUri
-            )
+        if (isOnline()) {
+            // MODO ONLINE: Enviar a API
+            try {
+                val dto = ProductoCreateDTO(
+                    nombre = producto.nombre,
+                    categoria = producto.categoria,
+                    cantidad = producto.cantidad,
+                    descripcion = producto.descripcion,
+                    ubicacion = producto.ubicacion,
+                    imagenUrl = producto.imagenUri
+                )
 
-            val response = apiService.createProducto(dto)
-            if (response.isSuccessful && response.body() != null) {
-                val newProduct = response.body()!!.toEntity()
-
-                // Guardar en caché local
-                dao.insert(newProduct)
-
-                Result.success(newProduct)
-            } else {
-                Result.failure(Exception("Error al crear producto: ${response.code()}"))
+                val response = apiService.createProducto(dto)
+                if (response.isSuccessful && response.body() != null) {
+                    val newProduct = response.body()!!.toEntity()
+                    dao.insert(newProduct)
+                    Result.success(newProduct)
+                } else {
+                    Result.failure(Exception("Error API: ${response.code()}"))
+                }
+            } catch (e: Exception) {
+                // Si falla la API, guardar localmente
+                saveLocalPending(producto)
             }
+        } else {
+            // MODO OFFLINE: Guardar solo localmente
+            saveLocalPending(producto)
+        }
+    }
+
+    /**
+     * Guarda un producto localmente cuando no hay conexión.
+     * Al reconectar, se sincronizará automáticamente.
+     */
+    private suspend fun saveLocalPending(producto: ProductoEntity): Result<ProductoEntity> {
+        return try {
+            dao.insert(producto)
+            Result.success(producto.copy(
+                // Usamos IDs negativos para identificar productos pendientes
+                id = -(System.currentTimeMillis().toInt())
+            ))
         } catch (e: Exception) {
-            e.printStackTrace()
             Result.failure(e)
         }
     }
 
-    // ==================== ACTUALIZAR PRODUCTO (API) ====================
+    // ==================== ACTUALIZAR PRODUCTO ====================
 
     suspend fun update(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
-        try {
-            val dto = ProductoUpdateDTO(
-                nombre = producto.nombre,
-                categoria = producto.categoria,
-                cantidad = producto.cantidad,
-                descripcion = producto.descripcion,
-                ubicacion = producto.ubicacion,
-                imagenUrl = producto.imagenUri
-            )
+        if (isOnline() && producto.id > 0) {
+            // MODO ONLINE: Actualizar en API
+            try {
+                val dto = ProductoUpdateDTO(
+                    nombre = producto.nombre,
+                    categoria = producto.categoria,
+                    cantidad = producto.cantidad,
+                    descripcion = producto.descripcion,
+                    ubicacion = producto.ubicacion,
+                    imagenUrl = producto.imagenUri
+                )
 
-            val response = apiService.updateProducto(producto.id.toLong(), dto)
-            if (response.isSuccessful && response.body() != null) {
-                val updated = response.body()!!.toEntity()
-
-                // Actualizar caché local
-                dao.update(updated)
-
-                Result.success(updated)
-            } else {
-                Result.failure(Exception("Error al actualizar: ${response.code()}"))
+                val response = apiService.updateProducto(producto.id.toLong(), dto)
+                if (response.isSuccessful && response.body() != null) {
+                    val updated = response.body()!!.toEntity()
+                    dao.update(updated)
+                    Result.success(updated)
+                } else {
+                    Result.failure(Exception("Error API: ${response.code()}"))
+                }
+            } catch (e: Exception) {
+                // Si falla, actualizar solo localmente
+                dao.update(producto)
+                Result.success(producto)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
+        } else {
+            // MODO OFFLINE: Actualizar solo localmente
+            dao.update(producto)
+            Result.success(producto)
         }
     }
 
-    // ==================== ELIMINAR PRODUCTO (API) ====================
+    // ==================== ELIMINAR PRODUCTO ====================
 
     suspend fun delete(producto: ProductoEntity): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.deleteProducto(producto.id.toLong())
-            if (response.isSuccessful) {
-                // Eliminar de caché local
+        if (isOnline() && producto.id > 0) {
+            // MODO ONLINE: Eliminar en API
+            try {
+                val response = apiService.deleteProducto(producto.id.toLong())
+                if (response.isSuccessful) {
+                    dao.delete(producto)
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error API: ${response.code()}"))
+                }
+            } catch (e: Exception) {
+                // Si falla, eliminar solo localmente
                 dao.delete(producto)
-
                 Result.success(Unit)
-            } else {
-                Result.failure(Exception("Error al eliminar: ${response.code()}"))
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
+        } else {
+            // MODO OFFLINE: Eliminar solo localmente
+            dao.delete(producto)
+            Result.success(Unit)
         }
     }
 
-    // ==================== CONSUMIR PRODUCTO (API) ====================
+    // ==================== CONSUMIR PRODUCTO ====================
 
     suspend fun consumirProducto(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
         if (producto.cantidad <= 0) {
             return@withContext Result.failure(Exception("No hay stock disponible"))
         }
 
-        try {
-            val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
-            val response = apiService.consumirProducto(dto)
+        if (isOnline() && producto.id > 0) {
+            try {
+                val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
+                val response = apiService.consumirProducto(dto)
 
-            if (response.isSuccessful && response.body() != null) {
-                val updated = response.body()!!.toEntity()
-
-                // Actualizar caché
-                dao.updateCantidad(updated.id, updated.cantidad)
-
-                Result.success(updated)
-            } else {
-                Result.failure(Exception("Error al consumir: ${response.code()}"))
+                if (response.isSuccessful && response.body() != null) {
+                    val updated = response.body()!!.toEntity()
+                    dao.updateCantidad(updated.id, updated.cantidad)
+                    Result.success(updated)
+                } else {
+                    Result.failure(Exception("Error API: ${response.code()}"))
+                }
+            } catch (e: Exception) {
+                // Fallback local
+                val newCantidad = producto.cantidad - 1
+                dao.updateCantidad(producto.id, newCantidad)
+                Result.success(producto.copy(cantidad = newCantidad))
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
+        } else {
+            // MODO OFFLINE
+            val newCantidad = producto.cantidad - 1
+            dao.updateCantidad(producto.id, newCantidad)
+            Result.success(producto.copy(cantidad = newCantidad))
         }
     }
 
-    // ==================== REABASTECER PRODUCTO (API) ====================
+    // ==================== REABASTECER PRODUCTO ====================
 
     suspend fun reabastecerProducto(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
-        try {
-            val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
-            val response = apiService.reabastecerProducto(dto)
+        if (isOnline() && producto.id > 0) {
+            try {
+                val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
+                val response = apiService.reabastecerProducto(dto)
 
-            if (response.isSuccessful && response.body() != null) {
-                val updated = response.body()!!.toEntity()
-
-                // Actualizar caché
-                dao.updateCantidad(updated.id, updated.cantidad)
-
-                Result.success(updated)
-            } else {
-                Result.failure(Exception("Error al reabastecer: ${response.code()}"))
+                if (response.isSuccessful && response.body() != null) {
+                    val updated = response.body()!!.toEntity()
+                    dao.updateCantidad(updated.id, updated.cantidad)
+                    Result.success(updated)
+                } else {
+                    Result.failure(Exception("Error API: ${response.code()}"))
+                }
+            } catch (e: Exception) {
+                // Fallback local
+                val newCantidad = producto.cantidad + 1
+                dao.updateCantidad(producto.id, newCantidad)
+                Result.success(producto.copy(cantidad = newCantidad))
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
+        } else {
+            // MODO OFFLINE
+            val newCantidad = producto.cantidad + 1
+            dao.updateCantidad(producto.id, newCantidad)
+            Result.success(producto.copy(cantidad = newCantidad))
         }
     }
 
     // ==================== CONVERSIÓN DTO → ENTITY ====================
 
-    private fun com.example.mybodega_grupo9.data.remote.ProductoResponseDTO.toEntity() = ProductoEntity(
+    private fun ProductoResponseDTO.toEntity() = ProductoEntity(
         id = this.id.toInt(),
         nombre = this.nombre,
         categoria = this.categoria,

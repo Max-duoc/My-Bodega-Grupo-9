@@ -28,6 +28,16 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // ==================== SINCRONIZACIÓN ====================
+
+    /**
+     * Sincroniza productos con el servidor.
+     * Llama esto al iniciar la app o cuando detectes conexión.
+     */
+    fun syncProductos() = viewModelScope.launch {
+        repo.syncPendingChanges()
+    }
+
     // ==================== AGREGAR PRODUCTO ====================
 
     fun agregarProducto(p: ProductoEntity, onSuccess: () -> Unit = {}) = viewModelScope.launch {

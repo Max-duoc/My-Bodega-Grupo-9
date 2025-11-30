@@ -1,6 +1,5 @@
 package com.example.mybodega_grupo9.ui.screen
 
-import android.R.id.message
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -9,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,15 +28,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mybodega_grupo9.data.local.ProductoEntity
-import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
     navController: NavController,
-    vm: ProductoViewModel = viewModel(),
-
+    vm: ProductoViewModel = viewModel()
 ) {
     val productos by vm.productos.collectAsState()
     val message by vm.message.collectAsState()
@@ -51,6 +47,7 @@ fun DetailsScreen(
             vm.clearMessage()
         }
     }
+
     // Filtrado en tiempo real
     val filtered = productos.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
@@ -137,8 +134,9 @@ fun DetailsScreen(
 }
 
 // ============================================
-// COMPONENTE: Dashboard de Estadísticas
+// RESTO DE COMPONENTES (sin cambios)
 // ============================================
+
 @Composable
 fun StatsRow(
     totalProductos: Int,
@@ -219,9 +217,6 @@ fun StatCard(
     }
 }
 
-// ============================================
-// COMPONENTE: Barra de búsqueda
-// ============================================
 @Composable
 fun SearchBar(
     query: String,
@@ -256,9 +251,6 @@ fun SearchBar(
     )
 }
 
-// ============================================
-// COMPONENTE: Card de Producto
-// ============================================
 @Composable
 fun ProductCard(
     producto: ProductoEntity,
@@ -280,35 +272,24 @@ fun ProductCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Header: Nombre, Categoría y Stock
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = producto.nombre,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
+                    Text(
+                        text = producto.nombre,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(Modifier.height(4.dp))
-
                     CategoriaBadge(categoria = producto.categoria)
                 }
-
-                // Indicador de stock
                 StockIndicator(cantidad = producto.cantidad)
             }
 
-            // Ubicación
             if (!producto.ubicacion.isNullOrBlank()) {
                 Spacer(Modifier.height(12.dp))
                 Row(
@@ -329,7 +310,6 @@ fun ProductCard(
                 }
             }
 
-            // Imagen del producto
             producto.imagenUri?.let { uri ->
                 Spacer(Modifier.height(12.dp))
                 Image(
@@ -343,7 +323,6 @@ fun ProductCard(
                 )
             }
 
-            // Alerta de stock bajo
             if (producto.cantidad <= 2 && producto.cantidad > 0) {
                 Spacer(Modifier.height(12.dp))
                 LowStockAlert()
@@ -351,12 +330,10 @@ fun ProductCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // Botones de acción
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Controles de stock
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -405,7 +382,6 @@ fun ProductCard(
                     }
                 }
 
-                // Botón editar
                 FilledTonalButton(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f),
@@ -420,7 +396,6 @@ fun ProductCard(
                     Text("Editar")
                 }
 
-                // Botón eliminar
                 OutlinedButton(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier.weight(1f),
@@ -441,7 +416,6 @@ fun ProductCard(
         }
     }
 
-    // Diálogo de confirmación de eliminación
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -469,9 +443,6 @@ fun ProductCard(
     }
 }
 
-// ============================================
-// COMPONENTE: Badge de categoría
-// ============================================
 @Composable
 fun CategoriaBadge(categoria: String) {
     val (color, icon) = when (categoria.lowercase()) {
@@ -507,9 +478,6 @@ fun CategoriaBadge(categoria: String) {
     }
 }
 
-// ============================================
-// COMPONENTE: Indicador de stock
-// ============================================
 @Composable
 fun StockIndicator(cantidad: Int) {
     val (backgroundColor, textColor, label) = when {
@@ -550,9 +518,6 @@ fun StockIndicator(cantidad: Int) {
     }
 }
 
-// ============================================
-// COMPONENTE: Alerta de stock bajo
-// ============================================
 @Composable
 fun LowStockAlert() {
     Surface(
@@ -582,9 +547,6 @@ fun LowStockAlert() {
     }
 }
 
-// ============================================
-// COMPONENTE: Estado vacío
-// ============================================
 @Composable
 fun EmptyState(modifier: Modifier = Modifier) {
     Column(

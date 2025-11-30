@@ -32,8 +32,17 @@ import java.sql.Date
 @Composable
 fun MovimientosScreen(vm: MovimientoViewModel = viewModel()) {
     val movimientos by vm.movimientos.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var filterType by remember { mutableStateOf<String?>(null) }
+
+    // ⬇️ AGREGAR ESTA SINCRONIZACIÓN AL ABRIR LA PANTALLA
+    LaunchedEffect(Unit) {
+        vm.syncMovimientos()
+    }
+
+    // ... resto del código sin cambios ...
+
 
     // Filtrado de movimientos
     val movimientosFiltrados = if (filterType != null) {
@@ -389,4 +398,6 @@ fun getTipoInfo(tipo: String): Pair<ImageVector, Color> {
         "Reabastecimiento" -> Pair(Icons.Default.Add, Color(0xFF8B5CF6))
         else -> Pair(Icons.Default.ChangeCircle, Color(0xFF6B7280))
     }
+
+
 }

@@ -120,9 +120,15 @@ fun AddItemScreen(
     }
 
     fun validarYGuardar() {
+        android.util.Log.d("AddItemScreen", "=== INICIANDO VALIDACIÓN ===")
+
         nombreError = nombre.isBlank()
         categoriaError = categoria.isBlank()
         cantidadError = cantidad.isBlank() || cantidad.toIntOrNull() == null
+
+        android.util.Log.d("AddItemScreen", "nombreError: $nombreError")
+        android.util.Log.d("AddItemScreen", "categoriaError: $categoriaError")
+        android.util.Log.d("AddItemScreen", "cantidadError: $cantidadError")
 
         if (!nombreError && !categoriaError && !cantidadError) {
             val producto = ProductoEntity(
@@ -134,10 +140,20 @@ fun AddItemScreen(
                 imagenUri = imageUri?.toString()
             )
 
-            // ⬇️ CAMBIAR ESTA LÍNEA:
+            android.util.Log.d("AddItemScreen", "Producto creado: $producto")
+            android.util.Log.d("AddItemScreen", "Llamando a vm.agregarProducto()")
+
             vm.agregarProducto(producto) {
+                android.util.Log.d("AddItemScreen", "Callback onSave ejecutado")
                 onSave()
             }
+        } else {
+            android.util.Log.d("AddItemScreen", "Validación FALLIDA")
+            Toast.makeText(
+                context,
+                "Por favor completa todos los campos obligatorios",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
