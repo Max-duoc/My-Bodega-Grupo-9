@@ -2,7 +2,6 @@ package com.example.mybodega_grupo9.ui.screen
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mybodega_grupo9.utils.WindowSizeClass
 import com.example.mybodega_grupo9.utils.rememberWindowSizeClass
@@ -17,12 +16,10 @@ fun HomeScreen(
     onNavigateToMovimientos: () -> Unit
 ) {
     val windowSizeInfo = rememberWindowSizeClass()
-
     val vm: ProductoViewModel = viewModel()
 
-    LaunchedEffect(Unit) {
-        vm.syncProductos()
-    }
+    // 🔥 REMOVIDO: Ya NO sincroniza automáticamente al entrar
+    // Esto evita que se borren los datos offline
 
     when (windowSizeInfo.widthSizeClass) {
         WindowSizeClass.Compact -> HomeCompact(
@@ -45,4 +42,3 @@ fun HomeScreen(
         )
     }
 }
-

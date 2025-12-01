@@ -29,6 +29,13 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mybodega_grupo9.data.local.ProductoEntity
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import com.example.mybodega_grupo9.viewmodel.SyncState
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +47,7 @@ fun DetailsScreen(
     val message by vm.message.collectAsState()
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
+    val syncState by vm.syncState.collectAsState()
 
     LaunchedEffect(message) {
         message?.let {
@@ -68,7 +76,96 @@ fun DetailsScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp
                     )
+                    AnimatedVisibility(
+                        visible = syncState !is SyncState.Idle,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        when (val state = syncState) {
+                            is SyncState.Syncing -> {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(12.dp),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        strokeWidth = 1.5.dp
+                                    )
+                                    Text(
+                                        "Sincronizando...",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                            is SyncState.Success -> {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = Color(0xFF10B981)
+                                    )
+                                    Text(
+                                        "✓ ${state.uploaded + state.downloaded + state.updated} cambios",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                            is SyncState.Error -> {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Error,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Text(
+                                        state.message,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+
                 },
+                actions = {
+                    // 🔥 Botón de sincronización bidireccional
+                    IconButton(
+                        onClick = { vm.syncProductos() },
+                        enabled = syncState !is SyncState.Syncing
+                    ) {
+                        when (syncState) {
+                            is SyncState.Syncing -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    strokeWidth = 2.dp
+                                )
+                            }
+
+                            else -> {
+                                Icon(
+                                    Icons.Default.Sync,
+                                    contentDescription = "Sincronizar con servidor (subir y descargar)",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                },
+
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
