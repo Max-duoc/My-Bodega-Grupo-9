@@ -2,25 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ============================================ -->
-    <!-- PERMISOS NECESARIOS -->
-    <!-- ============================================ -->
-
-    <!-- Permiso para acceder a internet (API REST) -->
+    <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Permiso para verificar estado de red (online/offline) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- Permiso para usar la cámara -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- ============================================ -->
-    <!-- APLICACIÓN -->
-    <!-- ============================================ -->
 
     <application
         android:allowBackup="true"
@@ -34,26 +23,17 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- ============================================ -->
-        <!-- ACTIVIDAD PRINCIPAL -->
-        <!-- ============================================ -->
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MyBodega_Grupo9"
-            android:windowSoftInputMode="adjustResize">
-
+            android:theme="@style/Theme.MyBodega_Grupo9">
             <intent-filter>
-                <action android:name="android.action.MAIN" />
-                <category android:name="android.launcher.CATEGORY_LAUNCHER" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- ============================================ -->
-        <!-- FILE PROVIDER (para la cámara) -->
-        <!-- ============================================ -->
-
+        <!-- FileProvider para la cámara -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -63,7 +43,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
     </application>
 
 </manifest>

@@ -16,7 +16,6 @@ import com.example.mybodega_grupo9.ui.screen.MovimientosScreen
 import com.example.mybodega_grupo9.ui.screen.RegisterScreen
 import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.MovimientoViewModel
-//import com.example.mybodega_grupo9.ui.screen.ReportScreen
 import com.example.mybodega_grupo9.viewmodel.ProductoViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -35,22 +34,28 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
 
-
         // Pantalla principal
         composable("home") {
             HomeScreen(
                 onNavigateToAdd = { navController.navigate("add") },
-                onNavigateToDetails = { navController.navigate("details") } ,
+                onNavigateToDetails = { navController.navigate("details") },
                 onNavigateToReport = { navController.navigate("report") },
-                onNavigateToMovimientos = { navController.navigate("movimientos")}
+                onNavigateToMovimientos = { navController.navigate("movimientos") }
             )
         }
 
-        // Agregar producto
+        // Agregar producto - CON NAVEGACIÓN CORREGIDA
         composable("add") {
             AddItemScreen(
                 vm = vm,
-                onSave = { navController.navigate("details") }
+                onSave = {
+                    navController.navigate("details") {
+                        // Limpia el back stack hasta "home"
+                        popUpTo("home") {
+                            inclusive = false
+                        }
+                    }
+                }
             )
         }
 
@@ -61,8 +66,6 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
                 vm = vm
             )
         }
-
-
 
         // Editar producto (se pasa ID como argumento)
         composable("edit/{id}") { backStackEntry ->
@@ -90,10 +93,9 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier) {
             )
         }
 
+        // Historial de movimientos
         composable("movimientos") {
             MovimientosScreen(vm = movimientoVm)
         }
-
     }
 }
-
