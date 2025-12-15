@@ -1,8 +1,6 @@
-// ============================================
-// LoginScreen.kt - VERSIÓN MEJORADA
-// ============================================
 package com.example.mybodega_grupo9.ui.screen
 
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,7 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,17 +22,55 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mybodega_grupo9.R
+import com.example.mybodega_grupo9.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel = viewModel()
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val isLoading by authViewModel.isLoading.collectAsState()
+    val message by authViewModel.message.collectAsState()
+    val loginSuccess by authViewModel.loginSuccess.collectAsState()
+
+    // Validaciones
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
+    // Mostrar mensajes
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            authViewModel.clearMessage()
+        }
+    }
+
+    // Navegar al home si login exitoso
+    LaunchedEffect(loginSuccess) {
+        if (loginSuccess) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+
+    fun validarYLogin() {
+        emailError = email.isBlank() || !email.contains("@")
+        passwordError = password.isBlank()
+
+        if (!emailError && !passwordError) {
+            authViewModel.login(email, password)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -56,7 +92,7 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo y branding
+            // Logo
             Surface(
                 modifier = Modifier.size(120.dp),
                 shape = RoundedCornerShape(24.dp),
@@ -111,18 +147,22 @@ fun LoginScreen(navController: NavController) {
                         value = email,
                         onValueChange = {
                             email = it
-                            error = false
+                            emailError = false
                         },
                         label = { Text("Correo electrónico") },
                         placeholder = { Text("ejemplo@correo.com") },
                         leadingIcon = {
                             Icon(Icons.Default.Email, contentDescription = null)
                         },
-                        isError = error,
+                        isError = emailError,
+                        supportingText = {
+                            if (emailError) Text("Email inválido")
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        enabled = !isLoading
                     )
 
                     // Campo Password
@@ -130,7 +170,7 @@ fun LoginScreen(navController: NavController) {
                         value = password,
                         onValueChange = {
                             password = it
-                            error = false
+                            passwordError = false
                         },
                         label = { Text("Contraseña") },
                         placeholder = { Text("••••••••") },
@@ -140,10 +180,8 @@ fun LoginScreen(navController: NavController) {
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
-                                    imageVector = if (passwordVisible)
-                                        Icons.Default.VisibilityOff
-                                    else
-                                        Icons.Default.Visibility,
+                                    if (passwordVisible) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
                                     contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
                                 )
                             }
@@ -152,61 +190,22 @@ fun LoginScreen(navController: NavController) {
                             VisualTransformation.None
                         else
                             PasswordVisualTransformation(),
-                        isError = error,
+                        isError = passwordError,
+                        supportingText = {
+                            if (passwordError) Text("La contraseña es obligatoria")
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        enabled = !isLoading
                     )
-
-                    // Mensaje de error
-                    AnimatedVisibility(
-                        visible = error,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    "Credenciales incorrectas. Intenta nuevamente.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
-                        }
-                    }
 
                     Spacer(Modifier.height(8.dp))
 
                     // Botón de login
                     Button(
-                        onClick = {
-                            isLoading = true
-                            if (email == "admin@mybodega.cl" && password == "1234") {
-                                error = false
-                                navController.navigate("home") {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                            } else {
-                                error = true
-                                isLoading = false
-                            }
-                        },
+                        onClick = { validarYLogin() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -235,43 +234,15 @@ fun LoginScreen(navController: NavController) {
             Spacer(Modifier.height(24.dp))
 
             // Link a registro
-            TextButton(onClick = { navController.navigate("register") }) {
+            TextButton(
+                onClick = { navController.navigate("register") },
+                enabled = !isLoading
+            ) {
                 Text(
                     "¿No tienes cuenta? Regístrate aquí",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Credenciales de prueba
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Credenciales de prueba",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Email: admin@mybodega.cl",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Text(
-                        "Password: 1234",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
             }
         }
     }

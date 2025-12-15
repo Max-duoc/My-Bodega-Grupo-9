@@ -23,12 +23,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.mybodega_grupo9.R
+import com.example.mybodega_grupo9.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController,
+                   authViewModel: AuthViewModel = viewModel()) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -52,8 +54,14 @@ fun RegisterScreen(navController: NavController) {
         termsError = !acceptTerms
 
         if (!nameError && !emailError && !passwordError && !passwordMismatch && !termsError) {
-            navController.navigate("login") {
-                popUpTo("register") { inclusive = true }
+            authViewModel.register(
+                email = email,
+                password = password,
+                nombre = name
+            ) {
+                navController.navigate("login") {
+                    popUpTo("register") { inclusive = true }
+                }
             }
         }
     }
