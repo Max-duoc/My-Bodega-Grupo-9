@@ -30,9 +30,58 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    // 🔥 NUEVO: Estado de sincronización
+    // 🔥 Estado de sincronización
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState
+
+    // 🔥 NUEVO: Mapa de estados de productos locales
+    private val _productosLocales = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
+    val productosLocales: StateFlow<Map<Int, Boolean>> = _productosLocales
+
+    // 🔥 NUEVO: Estado de carga individual para cada producto
+    private val _uploadingProducts = MutableStateFlow<Set<Int>>(emptySet())
+    val uploadingProducts: StateFlow<Set<Int>> = _uploadingProducts
+
+    // ==================== VERIFICAR PRODUCTOS LOCALES ====================
+
+    /**
+     * Verifica qué productos son locales (no sincronizados).
+     * Se llama automáticamente cuando cambian los productos.
+     */
+    fun checkLocalProducts() = viewModelScope.launch {
+        val localMap = mutableMapOf<Int, Boolean>()
+        productos.value.forEach { producto ->
+            val isLocal = repo.isLocalProduct(producto)
+            localMap[producto.id] = isLocal
+        }
+        _productosLocales.value = localMap
+    }
+
+    // ==================== SUBIR PRODUCTO INDIVIDUAL ====================
+
+    /**
+     * Sube un producto específico al servidor.
+     * Se usa cuando el usuario presiona el botón "Subir" en la card.
+     */
+    fun uploadProductToServer(producto: ProductoEntity) = viewModelScope.launch {
+        // Agregar al set de productos en proceso de subida
+        _uploadingProducts.value = _uploadingProducts.value + producto.id
+
+        try {
+            val result = repo.uploadProductToServer(producto)
+
+            result.onSuccess {
+                _message.value = "✓ '${producto.nombre}' subido al servidor"
+                // Actualizar el mapa de productos locales
+                _productosLocales.value = _productosLocales.value - producto.id
+            }.onFailure { error ->
+                _message.value = "Error: ${error.message}"
+            }
+        } finally {
+            // Remover del set de productos en proceso
+            _uploadingProducts.value = _uploadingProducts.value - producto.id
+        }
+    }
 
     // ==================== SINCRONIZACIÓN BIDIRECCIONAL ====================
 
@@ -52,7 +101,6 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
                         updated = result.updated
                     )
 
-                    // Construir mensaje descriptivo
                     val messages = mutableListOf<String>()
                     if (result.uploaded > 0) {
                         messages.add("${result.uploaded} subido${if (result.uploaded > 1) "s" else ""}")
@@ -69,6 +117,9 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
                     } else {
                         "Todo está sincronizado"
                     }
+
+                    // Actualizar mapa de productos locales
+                    checkLocalProducts()
                 }
 
                 is SyncResult.Error -> {
@@ -104,6 +155,7 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
 
             result.onSuccess {
                 _message.value = "Producto agregado exitosamente"
+                checkLocalProducts() // Actualizar mapa
                 onSuccess()
             }.onFailure { error ->
                 _message.value = "Error: ${error.message}"
@@ -146,6 +198,7 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
 
             result.onSuccess {
                 _message.value = "Producto eliminado"
+                _productosLocales.value = _productosLocales.value - p.id
             }.onFailure { error ->
                 _message.value = "Error: ${error.message}"
             }
