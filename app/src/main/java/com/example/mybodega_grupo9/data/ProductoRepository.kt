@@ -35,14 +35,94 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // ==================== SINCRONIZACIÓN BIDIRECCIONAL ====================
+    // ==================== VERIFICAR SI PRODUCTO EXISTE EN SERVIDOR ====================
 
     /**
-     * Sincronización completa:
-     * 1. Sube productos offline (ID negativos) al servidor
-     * 2. Descarga productos del servidor
-     * 3. Actualiza productos que existen en ambos lados
+     * Verifica si un producto con el mismo nombre ya existe en el servidor.
+     * Esto evita duplicados al sincronizar.
      */
+    suspend fun existsOnServer(nombre: String): Boolean = withContext(Dispatchers.IO) {
+        if (!isOnline()) return@withContext false
+
+        return@withContext try {
+            val response = apiService.getProductos()
+            if (response.isSuccessful && response.body() != null) {
+                response.body()!!.any { it.nombre.equals(nombre, ignoreCase = true) }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // ==================== SUBIR PRODUCTO INDIVIDUAL AL SERVIDOR ====================
+
+    /**
+     * Sube un producto específico al servidor de manera manual.
+     * Se usa cuando el usuario presiona el botón "Subir" en la card.
+     */
+    suspend fun uploadProductToServer(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
+        if (!isOnline()) {
+            return@withContext Result.failure(Exception("No hay conexión a internet"))
+        }
+
+        // Verificar si ya existe en el servidor
+        if (existsOnServer(producto.nombre)) {
+            return@withContext Result.failure(Exception("Ya existe un producto con este nombre en el servidor"))
+        }
+
+        return@withContext try {
+            val dto = ProductoCreateDTO(
+                nombre = producto.nombre,
+                categoria = producto.categoria,
+                cantidad = producto.cantidad,
+                descripcion = producto.descripcion,
+                ubicacion = producto.ubicacion,
+                imagenUrl = producto.imagenUri
+            )
+
+            val response = apiService.createProducto(dto)
+            if (response.isSuccessful && response.body() != null) {
+                val serverProduct = response.body()!!.toEntity()
+
+                // Eliminar el producto local temporal
+                dao.delete(producto)
+
+                // Insertar el producto con el ID real del servidor
+                dao.insert(serverProduct)
+
+                Result.success(serverProduct)
+            } else {
+                Result.failure(Exception("Error del servidor: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(Exception("Error al subir el producto: ${e.message}"))
+        }
+    }
+
+    // ==================== VERIFICAR SI ES PRODUCTO LOCAL ====================
+
+    /**
+     * Verifica si un producto es local (no sincronizado) basándose en:
+     * 1. ID autogenerado por Room (> 1000000)
+     * 2. No existe en el servidor con el mismo nombre
+     */
+    suspend fun isLocalProduct(producto: ProductoEntity): Boolean = withContext(Dispatchers.IO) {
+        // Si tiene ID muy alto, es definitivamente local
+        if (producto.id > 1000000) return@withContext true
+
+        // Si no hay conexión, asumimos que es local si tiene ID bajo
+        if (!isOnline()) return@withContext (producto.id <= 0)
+
+        // Verificar en el servidor
+        return@withContext !existsOnServer(producto.nombre)
+    }
+
+    // ==================== SINCRONIZACIÓN BIDIRECCIONAL (MANTENER) ====================
+
     suspend fun syncPendingChanges(): SyncResult = withContext(Dispatchers.IO) {
         if (!isOnline()) {
             return@withContext SyncResult.NoConnection
@@ -54,37 +134,34 @@ class ProductoRepository(private val context: Context) {
             var updated = 0
             var downloaded = 0
 
-            // 🔥 PASO 1: SUBIR productos offline al servidor (ID < 0 o ID muy alto)
-            val productosOffline = productosLocales.filter {
-                it.id <= 0 || it.id > 1000000 // IDs autogenerados por Room
-            }
+            // 🔥 PASO 1: SUBIR productos offline al servidor (ID > 1000000)
+            val productosOffline = productosLocales.filter { it.id > 1000000 }
 
             productosOffline.forEach { productoLocal ->
                 try {
-                    val dto = ProductoCreateDTO(
-                        nombre = productoLocal.nombre,
-                        categoria = productoLocal.categoria,
-                        cantidad = productoLocal.cantidad,
-                        descripcion = productoLocal.descripcion,
-                        ubicacion = productoLocal.ubicacion,
-                        imagenUrl = productoLocal.imagenUri
-                    )
+                    // Verificar si ya existe en el servidor
+                    if (!existsOnServer(productoLocal.nombre)) {
+                        val dto = ProductoCreateDTO(
+                            nombre = productoLocal.nombre,
+                            categoria = productoLocal.categoria,
+                            cantidad = productoLocal.cantidad,
+                            descripcion = productoLocal.descripcion,
+                            ubicacion = productoLocal.ubicacion,
+                            imagenUrl = productoLocal.imagenUri
+                        )
 
-                    val response = apiService.createProducto(dto)
-                    if (response.isSuccessful && response.body() != null) {
-                        val productoServidor = response.body()!!.toEntity()
+                        val response = apiService.createProducto(dto)
+                        if (response.isSuccessful && response.body() != null) {
+                            val productoServidor = response.body()!!.toEntity()
 
-                        // Eliminar el producto local temporal
-                        dao.delete(productoLocal)
+                            dao.delete(productoLocal)
+                            dao.insert(productoServidor)
 
-                        // Insertar el producto con el ID real del servidor
-                        dao.insert(productoServidor)
-
-                        uploaded++
+                            uploaded++
+                        }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    // Continuar con el siguiente producto
                 }
             }
 
@@ -93,7 +170,6 @@ class ProductoRepository(private val context: Context) {
             if (response.isSuccessful && response.body() != null) {
                 val productosServidor = response.body()!!.map { it.toEntity() }
 
-                // Obtener productos locales actualizados (sin los offline que ya subimos)
                 val productosLocalesActualizados = dao.getAllList()
 
                 productosServidor.forEach { productoServidor ->
@@ -102,11 +178,9 @@ class ProductoRepository(private val context: Context) {
                     }
 
                     if (productoLocal != null) {
-                        // Producto existe localmente - actualizar
                         dao.update(productoServidor)
                         updated++
                     } else {
-                        // Producto nuevo del servidor - descargar
                         dao.insert(productoServidor)
                         downloaded++
                     }
@@ -148,17 +222,14 @@ class ProductoRepository(private val context: Context) {
 
                     val response = apiService.createProducto(dto)
                     if (response.isSuccessful && response.body() != null) {
-                        // Guardar con ID del servidor
                         val serverProduct = response.body()!!.toEntity()
                         dao.insert(serverProduct)
                         Result.success(serverProduct)
                     } else {
-                        // API falló, guardar localmente
                         guardarOffline(producto)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    // API no disponible, guardar localmente
                     guardarOffline(producto)
                 }
             } else {
@@ -171,9 +242,6 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Guarda un producto localmente con ID temporal negativo
-     */
     private suspend fun guardarOffline(producto: ProductoEntity): Result<ProductoEntity> {
         return try {
             val localId = dao.insert(producto)
@@ -187,10 +255,8 @@ class ProductoRepository(private val context: Context) {
 
     suspend fun update(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
         return@withContext try {
-            // Actualizar localmente primero
             dao.update(producto)
 
-            // Intentar sincronizar con API si es un producto del servidor
             if (isOnline() && producto.id > 0 && producto.id < 1000000) {
                 try {
                     val dto = ProductoUpdateDTO(
@@ -227,10 +293,8 @@ class ProductoRepository(private val context: Context) {
 
     suspend fun delete(producto: ProductoEntity): Result<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
-            // Eliminar localmente primero
             dao.delete(producto)
 
-            // Intentar eliminar en API si es un producto del servidor
             if (isOnline() && producto.id > 0 && producto.id < 1000000) {
                 try {
                     apiService.deleteProducto(producto.id.toLong())
@@ -254,12 +318,10 @@ class ProductoRepository(private val context: Context) {
         }
 
         return@withContext try {
-            // Actualizar localmente primero
             val newCantidad = producto.cantidad - 1
             dao.updateCantidad(producto.id, newCantidad)
             val updatedProduct = producto.copy(cantidad = newCantidad)
 
-            // Intentar sincronizar con API
             if (isOnline() && producto.id > 0 && producto.id < 1000000) {
                 try {
                     val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
@@ -289,12 +351,10 @@ class ProductoRepository(private val context: Context) {
 
     suspend fun reabastecerProducto(producto: ProductoEntity): Result<ProductoEntity> = withContext(Dispatchers.IO) {
         return@withContext try {
-            // Actualizar localmente primero
             val newCantidad = producto.cantidad + 1
             dao.updateCantidad(producto.id, newCantidad)
             val updatedProduct = producto.copy(cantidad = newCantidad)
 
-            // Intentar sincronizar con API
             if (isOnline() && producto.id > 0 && producto.id < 1000000) {
                 try {
                     val dto = StockOperationDTO(productoId = producto.id.toLong(), cantidad = 1)
