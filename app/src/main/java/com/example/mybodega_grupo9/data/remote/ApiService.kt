@@ -31,4 +31,13 @@ interface ApiService {
 
     @DELETE("api/movimientos/limpiar")
     suspend fun clearMovimientos(): Response<Unit>
+
+    @POST("api/usuarios/login")
+    suspend fun login(@Body loginRequest: LoginRequestDTO): Response<LoginResponseDTO>
+
+    @POST("api/usuarios/register")
+    suspend fun register(@Body usuario: UsuarioCreateDTO): Response<UsuarioResponseDTO>
+
+    @GET("api/usuarios/{id}")
+    suspend fun getUsuarioById(@Path("id") id: Long): Response<UsuarioResponseDTO>
 }
